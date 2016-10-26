@@ -171,6 +171,7 @@ public class BluetoothChatFragment extends Fragment {
         mSendButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // Send a message using content of the edit text widget
+                //MDu will change it to send the seekbar value when released
                 View view = getView();
                 if (null != view) {
                     TextView textView = (TextView) view.findViewById(R.id.edit_text_out);

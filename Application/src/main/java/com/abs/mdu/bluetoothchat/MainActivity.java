@@ -18,9 +18,15 @@
 package com.abs.mdu.bluetoothchat;
 
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.ViewAnimator;
@@ -43,6 +49,8 @@ public class MainActivity extends SampleActivityBase {
     public static final String TAG = "MainActivity";
     private SeekBar seekBar;
     private TextView textView;
+    private EditText mOutEditText;
+    private Button mSendButton;
 
     // Whether the Log Fragment is currently shown
     private boolean mLogShown;
@@ -58,6 +66,8 @@ public class MainActivity extends SampleActivityBase {
             transaction.replace(R.id.sample_content_fragment, fragment);
             transaction.commit();
         }
+
+
 
         initializeVariables();
 
@@ -78,9 +88,11 @@ public class MainActivity extends SampleActivityBase {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                textView.setText("Current: " + progress );
-
-
+                        textView.setText("Current: " + progress );
+                        mOutEditText = (EditText) findViewById(R.id.edit_text_out);
+                        mOutEditText.setText("Current: " + progress );
+                        mSendButton = (Button) findViewById(R.id.button_send);
+                        mSendButton.callOnClick();
             }
         });
 
