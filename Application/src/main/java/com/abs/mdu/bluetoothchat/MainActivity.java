@@ -93,7 +93,7 @@ public class MainActivity extends SampleActivityBase {
         textView2.setText("Temperature: " + seekBar.getProgress());
 
         seekBar2.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            int progress = 0;
+            float progress = 0.0f;
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progresValue, boolean fromUser) {
@@ -210,11 +210,11 @@ public class MainActivity extends SampleActivityBase {
         getCurrent =    0x0B;
         setTemperature = 0x1A;
         getTemperature = 0x1B;
-        opc =           0x08;
+        opc =           0x70;
         status =        0x00;
     }
 
-    private void sendMsg(int progress, byte cmd) throws IOException {
+    private void sendMsg(float progress, byte cmd) throws IOException {
 
         mOutEditText = (EditText) findViewById(R.id.edit_text_out);
 
@@ -232,22 +232,23 @@ public class MainActivity extends SampleActivityBase {
 
         ByteBuffer buffer = ByteBuffer.allocate(4);
 //b.order(ByteOrder.BIG_ENDIAN); // optional, the initial order of a byte buffer is always BIG_ENDIAN.
-        buffer.putInt(progress);
+
+        buffer.putFloat(progress);
 
         byte[] byte_progess = buffer.array();
-        temperature_msg[6] =  byte_progess [0];
-        temperature_msg[7] =  byte_progess [1];
-        temperature_msg[8] =  byte_progess [2];
-        temperature_msg[9] =  byte_progess [3];
-        temperature_msg[1] = (byte) temperature_msg.length;
+        temperature_msg[6] =  byte_progess [3];
+        temperature_msg[7] =  byte_progess [2];
+        temperature_msg[8] =  byte_progess [1];
+        temperature_msg[9] =  byte_progess [0];
+        temperature_msg[1] = (byte) (temperature_msg.length -2 ) ;
 
-        int crc, i;
+        byte crc, i;
         crc=0;
         for (i=0; i< temperature_msg.length; i++) {
-            crc |= temperature_msg[i];
+            crc ^= temperature_msg[i];
         }
 
-        temperature_msg[10] = (byte) crc;
+        temperature_msg[10] = ((byte) crc );
         //length must be in the end, when msg is completely build;
 
         //String temperature_msg_string = Arrays.toString(temperature_msg);
