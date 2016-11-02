@@ -44,6 +44,8 @@ import android.widget.Toast;
 
 import com.abs.mdu.common.logger.Log;
 
+import java.util.Arrays;
+
 /**
  * This fragment controls Bluetooth to communicate with other devices.
  */
@@ -300,13 +302,21 @@ public class BluetoothChatFragment extends Fragment {
                     byte[] writeBuf = (byte[]) msg.obj;
                     // construct a string from the buffer
                     String writeMessage = new String(writeBuf);
-                    mConversationArrayAdapter.add("Me:  " + writeMessage);
+
+                    //mConversationArrayAdapter.add("Sent:  " + writeMessage);
+                    mConversationArrayAdapter.add("Sent: "+ Arrays.toString(writeBuf));
                     break;
                 case Constants.MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
+                    byte[] readMsg_byte = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
-                    String readMessage = new String(readBuf, 0, msg.arg1);
-                    mConversationArrayAdapter.add(mConnectedDeviceName + ":  " + readMessage);
+                    String readMessage;// = new String(readBuf, 0, msg.arg1);
+                    readMessage = "";
+                    //convert SLS msg to byte array and analyse bute 5 to see the command:
+                    String newReadMessage = check_cmd(readMsg_byte);
+                    mConversationArrayAdapter.add("Dev: "+ mConnectedDeviceName + ":  " + newReadMessage);
+
+
                     break;
                 case Constants.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
@@ -324,7 +334,36 @@ public class BluetoothChatFragment extends Fragment {
                     break;
             }
         }
+
+
     };
+
+    private String check_cmd(byte[] readMsg_byte) {
+        String readMessage;
+        switch (readMsg_byte[5]){
+            case 0 : readMessage = "SLS_cmd_sys_getStatus";     break;
+            case 1 : readMessage = "SLS_cmd_sys_selfTest";      break;
+            case 2 : readMessage = "SLS_cmd_sys_heartbeat";     break;
+            case 3 : readMessage = "SLS_cmd_sys_Info";          break;
+            case 4 : readMessage = "SLS_cmd_sys_setEvents";     break;
+            case 5 : readMessage = "SLS_cmd_sys_getEvents";     break;
+            case 6 : readMessage = "SLS_cmd_sys_setBoardData";  break;
+            case 7 : readMessage = "SLS_cmd_sys_getBoardData";  break;
+            case 8 : readMessage = "SLS_cmd_Monitor_setSampling";break;
+            case 9 : readMessage = "SLS_cmd_Monitor_getSampling";break;
+
+            case 10 : readMessage = "SLS_cmd_LED_setCurrent";   break;
+            case 11 : readMessage = "SLS_cmd_LED_getCurrent";   break;
+
+            case 26 : readMessage = "SLS_cmd_TEC_setTemperature";break;
+            case 27 : readMessage = "SLS_cmd_TEC_getTemperature";break;
+            default:
+                readMessage = "Command not recognized";          break;
+
+        }
+
+        return readMessage;
+    }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {

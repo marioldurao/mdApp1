@@ -18,16 +18,11 @@
 package com.abs.mdu.bluetoothchat;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Xml;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.ViewAnimator;
@@ -38,11 +33,12 @@ import com.abs.mdu.common.logger.LogFragment;
 import com.abs.mdu.common.logger.LogWrapper;
 import com.abs.mdu.common.logger.MessageOnlyLogFilter;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.Arrays;
+
+import static java.nio.charset.Charset.defaultCharset;
 
 /**
  * A simple launcher activity containing a summary sample description, sample log and a custom
@@ -89,8 +85,8 @@ public class MainActivity extends SampleActivityBase {
         initializeVariables();
 
         // Initialize the textview with '0'.
-        textView.setText("Current: " + seekBar.getProgress());
-        textView2.setText("Temperature: " + seekBar.getProgress());
+        textView.setText(getString(R.string.current_string) + seekBar.getProgress());
+        textView2.setText(getString(R.string.temperature_string) + seekBar.getProgress());
 
         seekBar2.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             float progress = 0.0f;
@@ -106,7 +102,7 @@ public class MainActivity extends SampleActivityBase {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                textView2.setText("Temperature: " + progress );
+                textView2.setText(getString(R.string.temperature_string) + progress );
 
                 try {
                     sendMsg(progress, setTemperature);
@@ -131,7 +127,7 @@ public class MainActivity extends SampleActivityBase {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                        textView.setText("Current: " + progress );
+                        textView.setText(getString(R.string.current_string) + progress );
                         mOutEditText = (EditText) findViewById(R.id.edit_text_out);
                 try {
                     sendMsg(progress, setCurrent);
@@ -234,12 +230,13 @@ public class MainActivity extends SampleActivityBase {
 //b.order(ByteOrder.BIG_ENDIAN); // optional, the initial order of a byte buffer is always BIG_ENDIAN.
 
         buffer.putFloat(progress);
-
-        byte[] byte_progess = buffer.array();
-        temperature_msg[6] =  byte_progess [3];
-        temperature_msg[7] =  byte_progess [2];
-        temperature_msg[8] =  byte_progess [1];
-        temperature_msg[9] =  byte_progess [0];
+        byte[] byte_progress  = new byte[4];;
+        Arrays.fill( byte_progress, (byte) 0 );
+        byte_progress = buffer.array();
+        temperature_msg[6] = (byte) byte_progress [3];
+        temperature_msg[7] = (byte) byte_progress [2];
+        temperature_msg[8] = (byte) byte_progress [1];
+        temperature_msg[9] = (byte) byte_progress [0];
         temperature_msg[1] = (byte) (temperature_msg.length -2 ) ;
 
         byte crc, i;
@@ -249,17 +246,23 @@ public class MainActivity extends SampleActivityBase {
         }
 
         temperature_msg[10] = ((byte) crc );
+        Charset mycharset = defaultCharset();
         //length must be in the end, when msg is completely build;
 
+
+
+
         //String temperature_msg_string = Arrays.toString(temperature_msg);
-        String temperature_msg_string = new String(temperature_msg);
+        String temperature_msg_string = new String(temperature_msg, mycharset); //must put the correct encoding for the negatives
+            if(temperature_msg_string.length() != 11 ) {
+                temperature_msg_string = "Error size = " + temperature_msg_string.length();
+            }
 
         id++;
         mOutEditText.setText(temperature_msg_string);
         mSendButton = (Button) findViewById(R.id.button_send);
         mSendButton.callOnClick();
+
     }
-
-
 
 }
