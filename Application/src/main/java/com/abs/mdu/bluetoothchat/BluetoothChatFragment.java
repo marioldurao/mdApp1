@@ -39,11 +39,14 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.abs.mdu.common.logger.Log;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
@@ -52,16 +55,32 @@ import java.util.Arrays;
 public class BluetoothChatFragment extends Fragment {
 
     private static final String TAG = "BluetoothChatFragment";
+    //for mdu
+
+    private int id;
+    byte  start_byte;
+    byte  setCurrent;
+    byte  getCurrent;
+    byte  setTemperature;
+    byte  getTemperature;
+    byte  opc;
+    byte  status;
 
     // Intent request codes
     private static final int REQUEST_CONNECT_DEVICE_SECURE = 1;
     private static final int REQUEST_CONNECT_DEVICE_INSECURE = 2;
     private static final int REQUEST_ENABLE_BT = 3;
 
+    public byte[] message_array;
+
     // Layout Views
     private ListView mConversationView;
     private EditText mOutEditText;
     private Button mSendButton;
+    private SeekBar seekBar;
+    private SeekBar seekBar2;
+    private TextView textView;
+    private TextView textView2;
 
     /**
      * Name of the connected device
@@ -101,7 +120,9 @@ public class BluetoothChatFragment extends Fragment {
             Toast.makeText(activity, "Bluetooth is not available", Toast.LENGTH_LONG).show();
             activity.finish();
         }
-    }
+
+
+    }       //end of on create
 
 
     @Override
@@ -146,6 +167,7 @@ public class BluetoothChatFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_bluetooth_chat, container, false);
+
     }
 
     @Override
@@ -153,6 +175,16 @@ public class BluetoothChatFragment extends Fragment {
         mConversationView = (ListView) view.findViewById(R.id.in);
         mOutEditText = (EditText) view.findViewById(R.id.edit_text_out);
         mSendButton = (Button) view.findViewById(R.id.button_send);
+        seekBar = (SeekBar) view.findViewById(R.id.seekBar1);
+        seekBar2 = (SeekBar) view.findViewById(R.id.seekBar2);
+        textView = (TextView) view.findViewById(R.id.textView1);
+        textView2 = (TextView) view.findViewById(R.id.textView2);
+
+        initializeVariables();
+        // Initialize the textview with '0'.
+      //  textView.setText(getString(R.string.current_string) + seekBar.getProgress());
+       // textView2.setText(getString(R.string.temperature_string) + seekBar.getProgress());
+
     }
 
     /**
@@ -188,6 +220,59 @@ public class BluetoothChatFragment extends Fragment {
 
         // Initialize the buffer for outgoing messages
         mOutStringBuffer = new StringBuffer("");
+
+
+        seekBar2.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            float progress = 0.0f;
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progresValue, boolean fromUser) {
+                progress = progresValue;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                textView2.setText(getString(R.string.temperature_string) + progress );
+
+                try {
+                    sendMsg(progress, setTemperature);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int progress = 0;
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progresValue, boolean fromUser) {
+                progress = progresValue;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+                textView.setText(getString(R.string.current_string) + progress );
+                //mOutEditText = (EditText) findViewById(R.id.edit_text_out);
+                try {
+                    sendMsg(progress, setCurrent);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
+
     }
 
     /**
@@ -218,6 +303,10 @@ public class BluetoothChatFragment extends Fragment {
         if (message.length() > 0) {
             // Get the message bytes and tell the BluetoothChatService to write
             byte[] send = message.getBytes();
+            // I will here get the data from the seek bar and construct the message before is is sended
+
+
+
             mChatService.write(send);
 
             // Reset out string buffer to zero and clear the edit text field
@@ -225,6 +314,9 @@ public class BluetoothChatFragment extends Fragment {
             mOutEditText.setText(mOutStringBuffer);
         }
     }
+
+
+
 
     /**
      * The action listener for the EditText widget, to listen for the return key
@@ -438,5 +530,81 @@ public class BluetoothChatFragment extends Fragment {
         }
         return false;
     }
+
+    // A private method to help us initialize our variables.
+    private void initializeVariables() {
+
+
+        seekBar.setMax(600);
+        seekBar2.setMax(70);
+        id = 0;
+        start_byte =    0x7E;
+        setCurrent =    0x0A;
+        getCurrent =    0x0B;
+        setTemperature = 0x1A;
+        getTemperature = 0x1B;
+        opc =           0x70;
+        status =        0x00;
+
+    }
+
+    private void sendMsg(float progress, byte cmd) throws IOException {
+
+
+        String s = "";
+
+        byte[] temperature_msg = new byte[11];
+        Arrays.fill( temperature_msg, (byte) 0 );
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.putFloat(progress);
+        byte[] byte_progress  = new byte[4];;
+        Arrays.fill( byte_progress, (byte) 0 );
+        byte_progress = buffer.array();
+
+        temperature_msg[0] = start_byte;
+        //length in the end
+        temperature_msg[2] = opc;
+        temperature_msg[3] = (byte) id;
+        temperature_msg[4] = cmd;
+        temperature_msg[5] = status;
+
+
+        temperature_msg[6] = (byte) byte_progress [3];
+        temperature_msg[7] = (byte) byte_progress [2];
+        temperature_msg[8] = (byte) byte_progress [1];
+        temperature_msg[9] = (byte) byte_progress [0];
+        temperature_msg[1] = (byte) (temperature_msg.length -2 ) ;
+
+        byte crc, i;
+        crc=0;
+        for (i=0; i< temperature_msg.length; i++) {
+            crc ^= temperature_msg[i];
+        }
+
+        temperature_msg[10] = ((byte) crc );
+
+        /*        Charset mycharset = defaultCharset();
+        //length must be in the end, when msg is completely build;
+
+ //best working, only missing negative charaters thar are trasnlated into more the one bytes
+        String temperature_msg_string = new String(temperature_msg, mycharset); //must put the correct encoding for the negatives
+            if(temperature_msg_string.length() != 11 ) {
+                temperature_msg_string = "Error size = " + temperature_msg_string.length();
+            }
+            //mOutEditText.setText(temperature_msg_string);
+            */
+
+        mChatService.write(temperature_msg);
+
+        // Reset out string buffer to zero and clear the edit text field
+        mOutStringBuffer.setLength(0);
+        mOutEditText.setText(mOutStringBuffer);
+
+        id++;
+
+
+        //mSendButton.callOnClick();
+    }
+
 
 }

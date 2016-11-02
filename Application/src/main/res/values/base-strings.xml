@@ -16,7 +16,7 @@
 -->
 
 <resources>
-    <string name="app_name">SLS APP v_b01</string>
+    <string name="app_name">EasySmartControl</string>
     <string name="intro_message">
         <![CDATA[
             This application allows to control the a SLS device from an android device using bluetooth connection

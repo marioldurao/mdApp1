@@ -24,7 +24,7 @@
           android:id="@+id/sample_output"
           android:layout_width="match_parent"
           android:layout_height="0px"
-          android:layout_weight="1">
+          android:layout_weight="0.29">
 
         <ScrollView
               style="@style/Widget.SampleMessageTile"
@@ -39,7 +39,8 @@
                   android:paddingRight="@dimen/horizontal_page_margin"
                   android:paddingTop="@dimen/vertical_page_margin"
                   android:paddingBottom="@dimen/vertical_page_margin"
-                  android:text="@string/intro_message" />
+                  android:text="@string/intro_message"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small" />
         </ScrollView>
 
         <fragment
@@ -56,41 +57,6 @@
           android:background="@android:color/darker_gray" />
 
 
-    <SeekBar
-        android:id="@+id/seekBar1"
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="26dp"
-        android:max="10"/>
-
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/seekBar1"
-        android:layout_marginLeft="29dp"
-        android:layout_marginTop="14dp" />
-
-    <SeekBar
-        android:id="@+id/seekBar2"
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="26dp"
-        android:max="10"/>
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/seekBar1"
-        android:layout_marginLeft="29dp"
-        android:layout_marginTop="14dp" />
 
 
     <FrameLayout
